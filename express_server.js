@@ -6,7 +6,7 @@ app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
-const urlDatabase = {
+let urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
@@ -40,18 +40,48 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render("urls_show", templateVars);
+
 }); 
 
 
-function generateRandomString(length, chars) {
+function generateRandomString() {
+    const chars ='0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz' 
     let result = '';
-    for (let i = length; i > 0; --i) {
+    for (let i = 6; i > 0; i--) {
       result += chars[Math.floor(Math.random() * chars.length)];
     }
     return result;
 }
-const allChars ='0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz' 
+
+
+const renameKey = (object, key, newKey) => {
+
+  const clonedObj = Object.assign({}, object);
+  const targetKey = clonedObj[key];
+  delete clonedObj[key];
+  clonedObj[newKey] = targetKey;
+
+  return clonedObj;
+}
+
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send(generateRandomString(6,allChars));         // Respond with 'Ok' (we will replace this)
-});
+  let userInput = req.body;
+
+  userInput = renameKey(userInput, 'longURL', generateRandomString()); 
+  console.log("user input", userInput)
+  const objKeys = Object.keys(userInput).join();
+
+  urlDatabase = {...urlDatabase, ...userInput}
+
+  res.redirect(`/urls/${objKeys}`);         
+}); 
+
+
+app.get("/u/:shortURL", (req, res) => {
+
+  const longURL = urlDatabase[req.params.shortURL]
+
+  res.redirect(longURL)
+
+}); 
+
