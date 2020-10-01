@@ -31,8 +31,9 @@ app.get("/hello", (req, res) => {
 }); 
 
 app.get("/urls", (req, res) => {
+  const userObj = users[req.cookies["userID"]]
   const templateVars = {
-      username: req.cookies.username,
+      user: userObj,
       urls: urlDatabase
       }
       res.render("urls_index", templateVars);
@@ -40,14 +41,16 @@ app.get("/urls", (req, res) => {
 }); 
 
 app.get("/urls/new", (req, res) => {
+  const userObj = users[req.cookies["userID"]]
   const templateVars = {
-    username: req.cookies.username,
-    }
-    res.render("urls_new", templateVars);
+      user: userObj
+      }  
+   res.render("urls_new", templateVars)
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL ],  username: req.cookies["username"]};
+  const userObj = users[req.cookies["userID"]]
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL ],   user: userObj};
   res.render("urls_show", templateVars);
 
 }); 
@@ -112,15 +115,71 @@ app.post("/urls/:shortURL", (req, res) => {
 });
 
 
+app.get("/login", (req, res) => {
+  const userObj = users[req.cookies["userID"]]
+  const templateVars = {
+      user: userObj
+      }  
+      res.render("urls_login", templateVars);
+});
 
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
-  res.redirect("/urls")
-  console.log(req.body.username)
+   for (let i in users) {  
+    if(req.body.email === users[i].email && req.body.password === users[i].password){
+      res.cookie("userID", i)
+      res.redirect("/urls")    
+    } else {
+        res.sendStatus('403') 
+       } 
+    }
+    res.redirect("/urls")
 });
   
 app.post("/logout", (req, res) => {
-    res.clearCookie("username")
+    res.clearCookie('userID')
     res.redirect("/urls")
 });
+
+
+app.get("/register", (req, res) => {
+  const userObj = users[req.cookies["userID"]]
+  const templateVars = {
+      user: userObj
+      }  
+      res.render("urls_registration", templateVars);
+});  
+
+let users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
+
+app.post("/register", (req, res) => {
+    if(req.body.email === "" || req.body.password === ""){
+      res.sendStatus('404')
+    }
+  for (let i in users) {  
+    if(req.body.email === users[i].email){
+      res.sendStatus('404')
+      } 
+    }
+  const randomID =  generateRandomString()
+  let newUser = { 
+    id: randomID, 
+    email: req.body.email,
+    password: req.body.password
+  } 
+  users[randomID] = newUser
+  res.cookie("userID", randomID)
+  res.redirect("/login")
+});  
+
 
