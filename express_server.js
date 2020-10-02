@@ -35,7 +35,7 @@ let users = {
 
 // Functions // 
 const urlFilter =function(dataBase,id){ 
-  let newDataBase = {} 
+  let newDataBase = {}                           
   for ( let key in dataBase){
     if(dataBase[key].userID === id){
       newDataBase[key] = dataBase[key];
