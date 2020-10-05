@@ -44,6 +44,16 @@ const urlFilter =function(dataBase,id){
   return newDataBase
 }
 
+const urlFilter2 =function(dataBase,id){ 
+  let result = false                           
+  for ( let key in dataBase){
+    if(dataBase[key].userID === id){
+      result = true 
+    }
+  }
+  return result
+}
+
 
 const generateRandomString = function() {
   const chars ='0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz' 
@@ -57,7 +67,7 @@ const generateRandomString = function() {
 
 // GET && POST// 
 app.get("/", (req, res) => {
-  res.send("Hello there!");
+  res.redirect("/login")
 });
 
 app.listen(PORT, () => {
@@ -110,18 +120,18 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const userID = req.session.userID
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL,   user: users[userID]};
+  if(urlFilter2(urlDatabase,userID)){
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL,   user: users[userID],   };
   res.render("urls_show", templateVars);
-
+  }
 }); 
 
 
 app.post("/urls/:shortURL", (req, res) => {
   let userInput = req.body.newURL;
-  const shortURL = req.params.shortURL
+  const shortURL = req.params.shortURL;
   urlDatabase[shortURL].longURL = userInput;
-
-  res.redirect("/urls")
+  res.redirect("/urls") 
 });
 
 
